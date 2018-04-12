@@ -9,9 +9,9 @@ import (
 	"strings"
 )
 
-var intRe = regexp.MustCompile(`\d+`)
-var floatRe = regexp.MustCompile(`\d+\.\d+`)
-var boolRe = regexp.MustCompile(`(true|false)`)
+var intRe = regexp.MustCompile(`^\d+$`)
+var floatRe = regexp.MustCompile(`^\d+\.\d+$`)
+var boolRe = regexp.MustCompile(`^(true|false)$`)
 var queryRe = regexp.MustCompile(`[^\.^\[^\]]+`)
 
 type Type int

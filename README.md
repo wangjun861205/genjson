@@ -109,8 +109,7 @@ Generic JSON parse library
                               "zzz": [1, 2, 3, 4]
                            }
                  }
-        }
-    ```
-    If you want to get object field you can use "object.fieldName", if you want to get array element you can use "array[index]" 
+        }```
+ If you want to get object field you can use "object.fieldName", if you want to get array element you can use "array[index]" 
     
 

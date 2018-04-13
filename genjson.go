@@ -2,6 +2,7 @@ package genjson
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"regexp"
@@ -39,6 +40,42 @@ func NewNode() *Node {
 	return &Node{
 		children:    make([]*Node, 0, 64),
 		childrenMap: make(map[interface{}]*Node),
+	}
+}
+
+func (n *Node) String() string {
+	if n.isNull {
+		return "null"
+	}
+	switch n.typ {
+	case Map:
+		itemList := make([]string, 0, 64)
+		for k, v := range n.childrenMap {
+			itemList = append(itemList, fmt.Sprintf("%s: %s", k.(string), v.String()))
+		}
+		s := fmt.Sprintf("{%s}", strings.Join(itemList, ", "))
+		return s
+	case Slice:
+		sliceLen := 64
+		itemList := make([]string, sliceLen)
+		var maxIndex int
+		for k, v := range n.childrenMap {
+			if k.(int) > maxIndex {
+				maxIndex = k.(int)
+			}
+			if k.(int) >= sliceLen {
+				sliceLen *= 2
+				newList := make([]string, sliceLen)
+				copy(newList, itemList)
+				itemList = newList
+			}
+			itemList[k.(int)] = v.String()
+		}
+		return fmt.Sprintf("[%s]", strings.Join(itemList[:maxIndex+1], ", "))
+	case String:
+		return fmt.Sprintf("%q", n.content)
+	default:
+		return n.content
 	}
 }
 
@@ -164,7 +201,7 @@ func (n *Node) readOther(reader *strings.Reader) {
 			}
 			n.content = content
 			return
-		case " ":
+		case " ", "\n", "\r", "\t":
 			continue
 		default:
 			content += s
@@ -257,6 +294,115 @@ func (n *Node) GetBool() (bool, error) {
 	}
 }
 
+func (n *Node) GetMap() (map[string]interface{}, error) {
+	if n.typ != Map {
+		return nil, errors.New("Node.GetMap(): not valid map node")
+	}
+	m := make(map[string]interface{})
+	var err error
+	for k, v := range n.childrenMap {
+		switch v.typ {
+		case Map:
+			m[k.(string)], err = v.GetMap()
+			if err != nil {
+				return nil, err
+			}
+		case Slice:
+			m[k.(string)], err = v.GetSlice()
+			if err != nil {
+				return nil, err
+			}
+		case String:
+			m[k.(string)], err = v.GetString()
+			if err != nil {
+				return nil, err
+			}
+		case Int:
+			m[k.(string)], err = v.GetInt()
+			if err != nil {
+				return nil, err
+			}
+		case Float:
+			m[k.(string)], err = v.GetFloat()
+			if err != nil {
+				return nil, err
+			}
+		case Bool:
+			m[k.(string)], err = v.GetBool()
+			if err != nil {
+				return nil, err
+			}
+		default:
+			if v.IsNull() {
+				m[k.(string)] = "null"
+			} else {
+				return nil, errors.New("Node.GetMap(): unknown node type")
+			}
+		}
+	}
+	return m, nil
+}
+
+func (n *Node) GetSlice() ([]interface{}, error) {
+	if n.typ != Slice {
+		return nil, errors.New("Node.GetSlice(): not valid slice node")
+	}
+	sliceLen := 64
+	maxIndex := 0
+	l := make([]interface{}, sliceLen)
+	var err error
+	for k, v := range n.childrenMap {
+		if k.(int) > maxIndex {
+			maxIndex = k.(int)
+		}
+		if k.(int) >= sliceLen {
+			sliceLen *= 2
+			nl := make([]interface{}, sliceLen)
+			copy(nl, l)
+			l = nl
+		}
+		switch v.typ {
+		case Map:
+			l[k.(int)], err = v.GetMap()
+			if err != nil {
+				return nil, err
+			}
+		case Slice:
+			l[k.(int)], err = v.GetSlice()
+			if err != nil {
+				return nil, err
+			}
+		case String:
+			l[k.(int)], err = v.GetString()
+			if err != nil {
+				return nil, err
+			}
+		case Int:
+			l[k.(int)], err = v.GetInt()
+			if err != nil {
+				return nil, err
+			}
+		case Float:
+			l[k.(int)], err = v.GetFloat()
+			if err != nil {
+				return nil, err
+			}
+		case Bool:
+			l[k.(int)], err = v.GetBool()
+			if err != nil {
+				return nil, err
+			}
+		default:
+			if v.IsNull() {
+				l[k.(int)] = "null"
+			} else {
+				return nil, errors.New("Node.GetSlice(): unknown node type")
+			}
+		}
+	}
+	return l[:maxIndex+1], nil
+}
+
 func (n *Node) QueryString(queryStr string) (string, error) {
 	sNode := n.Query(queryStr)
 	if sNode == nil || sNode.IsNull() {
@@ -287,6 +433,22 @@ func (n *Node) QueryBool(queryStr string) (bool, error) {
 		return false, errors.New("Node.QueryBool(): node not exist")
 	}
 	return bNode.GetBool()
+}
+
+func (n *Node) QueryMap(queryStr string) (map[string]interface{}, error) {
+	mNode := n.Query(queryStr)
+	if mNode == nil {
+		return nil, errors.New("Node.QueryMap(): node not exist")
+	}
+	return mNode.GetMap()
+}
+
+func (n *Node) QuerySlice(queryStr string) ([]interface{}, error) {
+	sNode := n.Query(queryStr)
+	if sNode == nil {
+		return nil, errors.New("Node.QuerySlice(): node not exist")
+	}
+	return sNode.GetSlice()
 }
 
 func (n *Node) QueryValue(v interface{}, queryStr string) error {

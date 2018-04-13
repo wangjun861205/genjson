@@ -66,4 +66,20 @@ func TestGenJSON(t *testing.T) {
 	}
 	fmt.Printf("array first value: %d\n", arrayNum)
 	//output: array first value: 4
+
+	m, err := root.QueryMap("obj")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("map value: %v\n", m)
+	//output: map value: map[field1:foo field2:100]
+
+	l, err := root.QuerySlice("array")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("array value: %v\n", l)
+	//output: array value: array
+
+	fmt.Println(root)
 }

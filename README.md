@@ -1,7 +1,7 @@
 # genjson
 
 ## Overview
-Generic JSON parse library
+Generic JSON parse library by golang
 
 ## Examples
 

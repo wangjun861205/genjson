@@ -75,31 +75,31 @@ Generic JSON parse library
     }
 ```
 ## Usage
-  1. Parse JSON string:
-    ```root := genjson.Parse(jsonStr)```
+  1. **Parse JSON string**:  
+    ```root := genjson.Parse(jsonStr)```  
     You can pass string, []byte, io.Reader into Parse(j interface{}), it returns a *genjson.Node object, **you should always check if the return value is nil**.
-  2. Query node:
-    ```node := parentNode.Query("xxx.yyy.zzz[0]")```
+  2. **Query node**:  
+    ```node := parentNode.Query("xxx.yyy.zzz[0]")```  
     Query(queryStr string) method require a query string and return a *genjson.Node, if the node which is queried not exist, it will return a nil (about [query string format][query string format])
-  3. Query string:
-    ```s, err := parentNode.QueryString("xxx.yyy.zzz[0]")```
+  3. **Query string**:  
+    ```s, err := parentNode.QueryString("xxx.yyy.zzz[0]")```  
     QueryString(queryStr string) method require a query string and return string node value, if type of the node is not string or node not exist, it will return a empty string and a error (about [query string format](#query-string-format))
-  4. Query int:
-    ```i, err := parentNode.QueryInt("xxx.yyy.zzz[0]")```
+  4. **Query int**:  
+    ```i, err := parentNode.QueryInt("xxx.yyy.zzz[0]")```  
     Like QueryString(queryStr string), but QueryInt() method returns a int value
-  5. Query float:
-    ```f, err := parentNode.QueryFloat("xxx.yyy.zzz[0]")```
+  5. **Query float**:  
+    ```f, err := parentNode.QueryFloat("xxx.yyy.zzz[0]")```  
     Like QueryString(queryStr string), but QueryFloat() method returns a float64 value
-  6. Query bool:
-    ```b, err := parentNode.QueryBool("xxx.yyy.zzz[0]")```
+  6. **Query bool**:  
+    ```b, err := parentNode.QueryBool("xxx.yyy.zzz[0]")```  
     Like QueryString(), but QueryBool() method returns a bool value
-  7. Query value:
+  7. **Query value**:  
     ```var s string
        err := node.QueryValue(&s, "xxx.yyy.zzz[0]")
-    ```
+    ```  
      QueryValue(v interface{}, queryStr string), require a pointer (*string, *int, *float64, *bool) and a query string, if the type of the pointer not fit to node type or node not exist, it returns a error else return nil 
-  7. Check null node:
-    ``` result := node.IsNull() ```
+  8. **Check null node**:  
+    ``` result := node.IsNull() ```  
     IsNull() returns true if node is null node, else return false.Before invoke IsNull(), you should ensure node pointer is not nil.
     
 ## Query String Format
